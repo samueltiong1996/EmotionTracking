@@ -1,34 +1,11 @@
+
 #!/usr/bin/env python
 
 """
-The MIT License (MIT)
-
-Copyright (c) 2016 Izhar Shaikh
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
 ======================================================
 Emotion recognition using SVMs (Scikit-learn & OpenCV
 ======================================================
 
-Author: Izhar Shaikh
-License: MIT
 Dependencies: Python 2.7, Scikit-Learn, OpenCV 3.0.0,
               Numpy, Scipy, Matplotlib, Tkinter
 Instructions: Please checkout Readme.txt & Instructions.txt
@@ -44,14 +21,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 import subprocess
+from subprocess import Popen
+import sklearn
 from sklearn import datasets
-import FileDialog                       # Needed for Pyinstaller
-
 import sys
 if sys.version_info[0] < 3:
     import Tkinter as Tk
 else:
     import tkinter as Tk
+
+from tkinter import filedialog
 
 print(__doc__)
 
@@ -69,9 +48,9 @@ class Trainer:
         self.index = 0
 
     def reset(self):
-        print "============================================"
-        print "Resetting Dataset & Previous Results.. Done!"
-        print "============================================"
+        print ("============================================")
+        print ("Resetting Dataset & Previous Results.. Done!")
+        print ("============================================")
         self.results = {}
         self.imgs = faces.images
         self.index = 0
@@ -86,7 +65,7 @@ class Trainer:
             return self.index
 
     def record_result(self, smile=True):
-        print "Image", self.index + 1, ":", "Happy" if smile is True else "Sad"
+        print ("Image", self.index + 1, ":", "Happy" if smile is True else "Sad")
         self.results[str(self.index)] = smile
 
 
@@ -167,7 +146,7 @@ def displayBarGraph(isBarGraph):
 
 @run_once
 def printAndSaveResult():
-    print trainer.results                       # Prints the results
+    print (trainer.results)                      # Prints the results
     with open("../results/results.xml", 'w') as output:
         json.dump(trainer.results, output)        # Saving The Result
 
@@ -188,8 +167,11 @@ def displayFace(face):
 
 
 def _opencv():
-    print "\n\n Please Wait. . . ."
-    opencvProcess = subprocess.Popen("Train Classifier and Test Video Feed.py", close_fds=True, shell=True)
+    print ("\n\n Please Wait. . . .")
+    #execfile("train_classifier_videofeed.py")
+    Popen('python train_classifier_videofeed.py')
+    #$opencvProcess = execfile("train_classifier_videofeed.py")
+    #opencvProcess = subprocess.Popen("train_classifier_videofeed.py", close_fds=True, shell=True)
     # os.system('"Train Classifier.exe"')
     # opencvProcess.communicate()
 
@@ -228,11 +210,11 @@ if __name__ == "__main__":
     # ax tk.DrawingArea
     # Embedding the Matplotlib figure 'f' into Tkinter canvas
     canvas = FigureCanvasTkAgg(f, master=root)
-    canvas.show()
+    canvas.draw()
     canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
-    print "Keys in the Dataset: ", faces.keys()
-    print "Total Images in Olivetti Dataset:", len(faces.images)
+    print ("Keys in the Dataset: ", faces.keys())
+    print ("Total Images in Olivetti Dataset:", len(faces.images))
 
     # Declaring Button & Label Instances
     # =======================================
@@ -252,7 +234,7 @@ if __name__ == "__main__":
     HCount = 0
     SCount = 0
     countLabel = Tk.Label(master=root, textvariable=countVar)
-    countString = "(Happy: 0   Sad: 0)\n"     # Initial print
+    countString = "(Happy: 0   Lol: 0)\n"     # Initial print
     countVar.set(countString)
     countLabel.pack(side=Tk.TOP)
 
@@ -268,9 +250,8 @@ if __name__ == "__main__":
     authorVar = Tk.StringVar()
     authorLabel = Tk.Label(master=root, textvariable=authorVar)
     authorString = "\n\n Developed By: " \
-                   "\n Izhar Shaikh " \
-                   "\n (izhar.shaikh@ufl.edu) " \
-                   "\n [EEL6825 Pattern Recognition - Spring 2016]"     # Initial print
+                   "\n Emotion Tracking Team " \
+                   "\n [FYP - Swinburne]"     # Initial print
     authorVar.set(authorString)
     authorLabel.pack(side=Tk.BOTTOM)
 
