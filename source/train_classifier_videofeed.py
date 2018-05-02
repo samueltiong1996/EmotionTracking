@@ -1,28 +1,3 @@
-"""
-The MIT License (MIT)
-
-Copyright (c) 2016 Izhar Shaikh
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-"""
-
 import json
 from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
@@ -35,7 +10,7 @@ from scipy.ndimage import zoom
 from sklearn import datasets
 
 
-print "\n\n Please Wait . . . . .\n\n"
+print ("\n\n Please Wait . . . . .\n\n")
 
 faces = datasets.fetch_olivetti_faces()
 
@@ -49,9 +24,9 @@ class Trainer:
         self.index = 0
 
     def reset(self):
-        print "============================================"
-        print "Resetting Dataset & Previous Results.. Done!"
-        print "============================================"
+        print ("============================================")
+        print ("Resetting Dataset & Previous Results.. Done!")
+        print ("============================================")
         self.results = {}
         self.imgs = faces.images
         self.index = 0
@@ -66,7 +41,7 @@ class Trainer:
             return self.index
 
     def record_result(self, smile=True):
-        print "Image", self.index + 1, ":", "Happy" if smile is True else "Sad"
+        print ("Image", self.index + 1, ":", "Happy" if smile is True else "Sad")
         self.results[str(self.index)] = smile
 
 
@@ -76,7 +51,7 @@ def evaluate_cross_validation(clf, X, y, K):
     cv = KFold(len(y), K, shuffle=True, random_state=0)
     # by default the score used is the one returned by score method of the estimator (accuracy)
     scores = cross_val_score(clf, X, y, cv=cv)
-    print "Scores: ", (scores)
+    print ("Scores: ", (scores))
     print ("Mean score: {0:.3f} (+/-{1:.3f})".format(np.mean(scores), sem(scores)))
 
 
@@ -202,7 +177,7 @@ if __name__ == "__main__":
                 if prediction_result is True:
                     cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
                 else:
-                    cv2.putText(frame, "Not Smiling",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
+                    cv2.putText(frame, "SAD",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
 
                 # increment counter
                 face_index += 1
