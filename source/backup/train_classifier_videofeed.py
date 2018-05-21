@@ -13,7 +13,6 @@ from scipy.ndimage import zoom
 from sklearn import datasets
 import subprocess
 from subprocess import Popen
-import datetime
 
 with sqlite3.connect('database.db') as db:
     c=db.cursor()
@@ -182,8 +181,6 @@ if __name__ == "__main__":
     video_capture = cv2.VideoCapture(0)
 
     while (True):
-
-        now = datetime.datetime.now()
         # Capture frame-by-frame
         ret, frame = video_capture.read()
         
@@ -199,7 +196,7 @@ if __name__ == "__main__":
             (x, y, w, h) = face
             if w > 100:
                 # draw rectangle around face
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
                 # extract features
                 extracted_face = extract_face_features(gray, face, (0.3, 0.05)) #(0.075, 0.05)
@@ -212,10 +209,10 @@ if __name__ == "__main__":
 
                 # annotate main image with a label
                 if prediction_result is True:
-                    cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 5)
+                    cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
                     happy = happy + 1
                 else:
-                    cv2.putText(frame, "NOT SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
+                    cv2.putText(frame, "SAD",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
                     sad = sad + 1
 
                 # increment counter
@@ -228,15 +225,12 @@ if __name__ == "__main__":
 
                 percentageh = (happy / total) * 100
                 percentages = (sad / total) * 100
-                t = now.strftime("%H:%M")
+
                 with sqlite3.connect('database.db') as db:
                     c = db.cursor()
 
-                linegraph = 'INSERT INTO graph(times,happy,sad) VALUES (?,?,?)'
-                c.execute(linegraph,[t,percentageh,percentages])
-
-                linegraph = 'INSERT INTO pie(happynum,sadnum,total) VALUES (?,?,?)'
-                c.execute(linegraph,[happy,sad,total])
+                linegraph = 'INSERT INTO graph(happy,sad) VALUES (?,?)'
+                c.execute(linegraph,[percentageh,percentages])
                 db.commit()
 
 
