@@ -8,7 +8,6 @@ Emotion recognition using SVMs (Scikit-learn & OpenCV
 
 Dependencies: Python 2.7, Scikit-Learn, OpenCV 3.0.0,
               Numpy, Scipy, Matplotlib, Tkinter
-Instructions: Please checkout Readme.txt & Instructions.txt
 
 The dataset used in this example is Olivetti Faces:
  http://cs.nyu.edu/~roweis/data/olivettifaces.mat
