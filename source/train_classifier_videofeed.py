@@ -102,7 +102,7 @@ def extract_face_features(gray, detected_face, offset_coefficients):
 def predict_face_is_smiling(extracted_face):
     return True if svc_1.predict(extracted_face.reshape(1, -1)) else False
 
-gray1, face1 = detectFaces(cv2.imread("../data/Test3.jpg"))
+gray1, face1 = detectFaces(cv2.imread("../data/Test1.jpg"))
 gray2, face2 = detectFaces(cv2.imread("../data/Test2.jpg"))
 
 
