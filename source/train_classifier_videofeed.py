@@ -6,11 +6,22 @@ from scipy.stats import sem
 from sklearn import metrics
 import cv2
 import numpy as np
+import sqlite3
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from scipy.ndimage import zoom
 from sklearn import datasets
+import subprocess
+from subprocess import Popen
 
+with sqlite3.connect('database.db') as db:
+    c=db.cursor()
 
 print ("\n\n Please Wait . . . . .\n\n")
+
+
+fig = plt.figure(figsize=(8,6))
+ax1 = fig.add_subplot(1,1,1)
 
 faces = datasets.fetch_olivetti_faces()
 
@@ -18,6 +29,8 @@ faces = datasets.fetch_olivetti_faces()
 # Traverses through the dataset by incrementing index & records the result
 # ==========================================================================
 class Trainer:
+
+
     def __init__(self):
         self.results = {}
         self.imgs = faces.images
@@ -121,9 +134,30 @@ def test_recognition(c1, c2):
 # ------------------- LIVE FACE RECOGNITION -----------------------------------
 
 
+
+
+
 if __name__ == "__main__":
+    global happy
+    global sad
+    global total
+    global percentageh
+    global percentages
+    global count
+
+
+    happy = 0.00
+    sad = 0.00
+    total = 0.00
+    percentageh = 0.000
+    percentages = 0.000
+
+    Popen('python realtime.py', shell='true')
+   
+    count = 0
 
     svc_1 = SVC(kernel='linear')  # Initializing Classifier
+    
 
     trainer = Trainer()
     results = json.load(open("../results/results.xml"))  # Loading the classification result
@@ -146,10 +180,10 @@ if __name__ == "__main__":
 
     video_capture = cv2.VideoCapture(0)
 
-    while True:
+    while (True):
         # Capture frame-by-frame
         ret, frame = video_capture.read()
-
+        
         # detect faces
         gray, detected_faces = detectFaces(frame)
 
@@ -176,16 +210,43 @@ if __name__ == "__main__":
                 # annotate main image with a label
                 if prediction_result is True:
                     cv2.putText(frame, "SMILING",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
+                    happy = happy + 1
                 else:
                     cv2.putText(frame, "SAD",(x,y), cv2.FONT_HERSHEY_SIMPLEX, 2, 155, 5)
+                    sad = sad + 1
 
                 # increment counter
                 face_index += 1
+                count = count + 1
+
+            if count == 60:    
+                    
+                total = happy + sad
+
+                percentageh = (happy / total) * 100
+                percentages = (sad / total) * 100
+
+                with sqlite3.connect('database.db') as db:
+                    c = db.cursor()
+
+                linegraph = 'INSERT INTO graph(happy,sad) VALUES (?,?)'
+                c.execute(linegraph,[percentageh,percentages])
+                db.commit()
+
+
+                percentageh = 0.000
+                percentages = 0.000    
+                count = 0.00
+                happy = 0.00
+                sad = 0.00
 
         # Display the resulting frame
         cv2.imshow('Video', frame)
         if cv2.waitKey(10) & 0xFF == 27:
             break
+
+    
+
 
     # When everything is done, release the capture
     video_capture.release()

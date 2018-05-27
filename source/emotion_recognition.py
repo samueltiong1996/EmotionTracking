@@ -16,6 +16,9 @@ The dataset used in this example is Olivetti Faces:
 """
 
 import matplotlib
+import matplotlib.figure
+import matplotlib.patches
+import sqlite3
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,7 +37,12 @@ from tkinter import filedialog
 
 print(__doc__)
 
+with sqlite3.connect('database.db') as db:
+    c=db.cursor()
 
+c.execute('CREATE TABLE IF NOT EXISTS graph(happy NUMBER NOT NULL, sad NUMBER NOT NULL);')
+db.commit()
+db.close()
 
 faces = datasets.fetch_olivetti_faces()
 
@@ -169,12 +177,53 @@ def displayFace(face):
 def _opencv():
     print ("\n\n Please Wait. . . .")
     #execfile("train_classifier_videofeed.py")
-    Popen('python train_classifier_videofeed.py')
+    Popen('python train_classifier_videofeed.py', shell='true')
     #$opencvProcess = execfile("train_classifier_videofeed.py")
     #opencvProcess = subprocess.Popen("train_classifier_videofeed.py", close_fds=True, shell=True)
     # os.system('"Train Classifier.exe"')
     # opencvProcess.communicate()
 
+def _linegraph():
+    c.execute('SELECT rowid, happy, sad FROM graph')
+    ids =[]
+    emotion1 = []
+    emotion2 = []
+
+    for row in c.fetchall():
+        ids.append(row[0])
+        emotion1.append(row[1])
+        emotion2.append(row[2])
+
+    plt.plot(ids,emotion1,'-')
+    plt.plot(ids,emotion2,color='orange')   
+    plt.xlabel('Time')
+    plt.ylabel('Percentage (%)') 
+    plt.show()
+
+def _piechart():
+    c.execute('SELECT happy,sad FROM graph')
+    happy =[]
+    sad = []
+    total=[]
+    color = ['green','blue']
+    label = ['happy', 'sad']
+
+    for row in c.fetchall():
+        happy.append(row[0])
+        sad.append(row[1])
+
+    total.append(sum(happy))
+
+    total.append(sum(sad))
+
+    plt.pie(total,labels=label,colors=color)
+    plt.axis('equal')
+    plt.title('Overall Customer Emotion', bbox={'facecolor':'0.8','pad':5})
+    fig = plt.gcf()         
+    fig.add_subplot(111)
+    fig.set_size_inches(3,3)
+
+    plt.show()
 
 def _begin():
     trainer.reset()
@@ -192,6 +241,9 @@ def _quit():
 
 
 if __name__ == "__main__":
+   with sqlite3.connect('database.db') as db:
+    c=db.cursor()
+
     # Embedding things in a tkinter plot & Starting tkinter plot
     matplotlib.use('TkAgg')
     root = Tk.Tk()
@@ -202,47 +254,18 @@ if __name__ == "__main__":
     # =======================================
     trainer = Trainer()
 
-    # Creating the figure to be embedded into the tkinter plot
-    f, ax = plt.subplots(1, 2)
-    ax[0].imshow(faces.images[0], cmap='gray')
-    ax[1].axis('off')  # Initially keeping the Bar graph OFF
-
-    # ax tk.DrawingArea
-    # Embedding the Matplotlib figure 'f' into Tkinter canvas
-    canvas = FigureCanvasTkAgg(f, master=root)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-
-    print ("Keys in the Dataset: ", faces.keys())
-    print ("Total Images in Olivetti Dataset:", len(faces.images))
-
-    # Declaring Button & Label Instances
-    # =======================================
-    smileButton = Tk.Button(master=root, text='Smiling', command=smileCallback)
-    smileButton.pack(side=Tk.LEFT)
-
-    noSmileButton = Tk.Button(master=root, text='Not Smiling', command=noSmileCallback)
-    noSmileButton.pack(side=Tk.RIGHT)
-
-    labelVar = Tk.StringVar()
-    label = Tk.Label(master=root, textvariable=labelVar)
-    imageCountString = "Image Index: 0/400   [0 %]"     # Initial print
-    labelVar.set(imageCountString)
-    label.pack(side=Tk.TOP)
-
-    countVar = Tk.StringVar()
-    HCount = 0
-    SCount = 0
-    countLabel = Tk.Label(master=root, textvariable=countVar)
-    countString = "(Happy: 0   Lol: 0)\n"     # Initial print
-    countVar.set(countString)
-    countLabel.pack(side=Tk.TOP)
+    labels = Tk.Label(master=root, text='Emotion Analytics System')
+    labels.config(font=("Courier", 18))
+    labels.pack(padx=10,pady=50,side=Tk.TOP)
 
     opencvButton = Tk.Button(master=root, text='Load the "Trained Classifier" & Test Output', command=_opencv)
     opencvButton.pack(side=Tk.TOP)
 
-    resetButton = Tk.Button(master=root, text='Reset', command=_begin)
-    resetButton.pack(side=Tk.TOP)
+    lineButton = Tk.Button(master=root, text='View Line Graph', command=_linegraph)
+    lineButton.pack(side=Tk.TOP)
+
+    pieButton = Tk.Button(master=root, text='Pie Chart', command=_piechart)
+    pieButton.pack(side=Tk.TOP)
 
     quitButton = Tk.Button(master=root, text='Quit Application', command=_quit)
     quitButton.pack(side=Tk.TOP)
@@ -255,5 +278,5 @@ if __name__ == "__main__":
     authorVar.set(authorString)
     authorLabel.pack(side=Tk.BOTTOM)
 
-    root.iconbitmap(r'..\icon\happy-sad.ico')
+   # root.iconbitmap(r'..\icon\happy-sad.ico')
     Tk.mainloop()                               # Starts mainloop required by Tk
