@@ -1,19 +1,32 @@
 import matplotlib
+import matplotlib.figure
+import matplotlib.patches
+import sqlite3
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import numpy as np
 import json
 import subprocess
+#import train_classifier_videofeed
 from subprocess import Popen
 import sklearn
+import datetime
 from sklearn import datasets
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import sys
 if sys.version_info[0] < 3:
     import Tkinter as Tk
+    import ttk
+
 else:
     import tkinter as Tk
-
-from tkinter import filedialog
+    from tkinter import ttk
+    from tkinter import filedialog
+    from tkinter.ttk import *
+import ImageTk
+from PIL import Image
+from threading import Thread
 
 faces = datasets.fetch_olivetti_faces()
 
@@ -23,6 +36,11 @@ faces = datasets.fetch_olivetti_faces()
 class Trainer:
     def __init__(self):
         self.results = {}
+        self.resultsh = {}
+        self.resultss = {}
+        self.resultsa = {}
+        self.resultssp = {}
+        self.resultsn = {}
         self.imgs = faces.images
         self.index = 0
 
@@ -31,6 +49,11 @@ class Trainer:
         print ("Resetting Dataset & Previous Results.. Done!")
         print ("============================================")
         self.results = {}
+        self.resultsh = {}
+        self.resultss = {}
+        self.resultsa = {}
+        self.resultssp = {}
+        self.resultsn = {}
         self.imgs = faces.images
         self.index = 0
 
@@ -43,17 +66,51 @@ class Trainer:
                 self.index += 1
             return self.index
 
+
     def record_result(self, emotion=0):
         if emotion == 1:
             print ("Image", self.index + 1, ":", "Happy")
-            self.results[str(self.index)] = emotion
+            self.resultsh[str(self.index)] = True
+            self.resultss[str(self.index)] = False
+            self.resultsa[str(self.index)] = False
+            self.resultssp[str(self.index)] = False
+            self.resultsn[str(self.index)] = False
+            self.results[str(self.index)] = False
         elif emotion == 2:
             print ("Image", self.index +1, ":", "Sad")
-            self.results[str(self.index)] = emotion
-        else:
+            self.resultsh[str(self.index)] = False
+            self.resultss[str(self.index)] = True
+            self.resultsa[str(self.index)] = False
+            self.resultssp[str(self.index)] = False
+            self.resultsn[str(self.index)] = False
+            self.results[str(self.index)] = False
+        elif emotion == 3:
             print ("Image", self.index +1, ":", "Angry")
-            self.results[str(self.index)] = emotion
+            self.resultsh[str(self.index)] = False
+            self.resultss[str(self.index)] = False
+            self.resultsa[str(self.index)] = True
+            self.resultssp[str(self.index)] = False
+            self.resultsn[str(self.index)] = False
+            self.results[str(self.index)] = False
+        elif emotion == 4:
+            print ("Image", self.index +1, ":", "Suprised")
+            self.resultsh[str(self.index)] = False
+            self.resultss[str(self.index)] = False
+            self.resultsa[str(self.index)] = False
+            self.resultssp[str(self.index)] = True
+            self.resultsn[str(self.index)] = False
+            self.results[str(self.index)] = False    
+        else:
+            print ("Image", self.index +1, ":", "Normal")
+            self.resultsh[str(self.index)] = False
+            self.resultss[str(self.index)] = False
+            self.resultsa[str(self.index)] = False
+            self.resultssp[str(self.index)] = False
+            self.resultsn[str(self.index)] = True
+            self.results[str(self.index)] = False
 
+
+    
 
 
 # ===================================
@@ -82,41 +139,61 @@ def smileCallback():
     trainer.record_result(emotion=1)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
-    updateImageCount(happyCount=True, sadCount= False, angryCount= False)
+    updateImageCount(happyCount=True, sadCount= False, angryCount= False, suprisedCount = False, normalCount = False)
 
 def noSmileCallback():
     trainer.record_result(emotion=2)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
-    updateImageCount(happyCount=False, sadCount=True, angryCount= False)
+    updateImageCount(happyCount=False, sadCount=True, angryCount= False, suprisedCount = False, normalCount = False)
 
 def angryCallback():
     trainer.record_result(emotion=3)
     trainer.increment_face()
     displayFace(trainer.imgs[trainer.index])
-    updateImageCount(happyCount=False, sadCount=False, angryCount=True)
+    updateImageCount(happyCount=False, sadCount=False, angryCount=True, suprisedCount = False, normalCount = False)
+
+def suprisedCallback():
+    trainer.record_result(emotion=4)
+    trainer.increment_face()
+    displayFace(trainer.imgs[trainer.index])
+    updateImageCount(happyCount=False, sadCount=False, angryCount=False, suprisedCount = True, normalCount = False)
+
+def normalCallback():
+    trainer.record_result(emotion=5)
+    trainer.increment_face()
+    displayFace(trainer.imgs[trainer.index])
+    updateImageCount(happyCount=False, sadCount=False, angryCount=False, suprisedCount = False, normalCount = True)
 
 
-def updateImageCount(happyCount, sadCount, angryCount):
-    global HCount, SCount, ACount, imageCountString, countString   # Updating only when called by smileCallback/noSmileCallback
+def updateImageCount(happyCount, sadCount, angryCount, suprisedCount, normalCount):
+    global HCount, SCount, ACount, SPCount, NCount, imageCountString, countString   # Updating only when called by smileCallback/noSmileCallback
     if happyCount is True and HCount < 400:
         HCount += 1
     if sadCount is True and SCount < 400:
         SCount += 1
     if angryCount is True and ACount < 400:
         ACount += 1
-    if HCount == 400 or SCount == 400 or ACount == 400:
+    if suprisedCount is True and SPCount < 400:
+        SPCount += 1
+    if normalCount is True and NCount < 400:
+        NCount += 1
+    if HCount == 400 or SCount == 400 or ACount == 400 or SPCount == 400 or NCount == 400:
         HCount = 0
         SCount = 0
         ACount = 0
+        NCount = 0
+        SPCount = 0
+
     # --- Updating Labels
     # -- Main Count
+
     imageCountPercentage = str(float((trainer.index + 1) * 0.25)) \
         if trainer.index+1 < len(faces.images) else "Classification DONE! 100"
     imageCountString = "Image Index: " + str(trainer.index+1) + "/400   " + "[" + imageCountPercentage + " %]"
     labelVar.set(imageCountString)           # Updating the Label (ImageCount)
     # -- Individual Counts
-    countString = "(Happy: " + str(HCount) + "   " + "Sad: " + str(SCount) + "   " + "Angry: " + str(ACount) + ")\n"
+    countString = "(Happy: " + str(HCount) + "   " + "Sad: " + str(SCount) + "   " + "Angry: " + str(ACount) + "   " + "Suprised: " + str(SPCount) + "   " + "Normal: " + str(NCount) + ")\n"
     countVar.set(countString)
 
 
@@ -138,35 +215,65 @@ def displayBarGraph(isBarGraph):
     ax[1].legend()
 
 
-@run_once
 def printAndSaveResult():
-    print (trainer.results)                      # Prints the results
-    with open("../results/results.xml", 'w') as output:
-        json.dump(trainer.results, output)        # Saving The Result
+    print (trainer.resultsh)                      # Prints the results
+    with open("../results/resultsh.xml", 'w') as output1:
+        json.dump(trainer.resultsh, output1)        # Saving The Result
 
-@run_once
+    print (trainer.resultss)                      
+    with open("../results/resultss.xml", 'w') as output2:
+        json.dump(trainer.resultss, output2) 
+
+    print (trainer.resultsa)                      
+    with open("../results/resultsa.xml", 'w') as output3:
+        json.dump(trainer.resultsa, output3) 
+
+    print (trainer.resultssp)                      
+    with open("../results/resultssp.xml", 'w') as output4:
+        json.dump(trainer.resultssp, output4) 
+
+    print (trainer.resultsn)                      
+    with open("../results/resultsn.xml", 'w') as output5:
+        json.dump(trainer.resultsn, output5) 
+
 def loadResult():
-    results = json.load(open("../results/results.xml"))
-    trainer.results = results
+    resultsh = json.load(open("../results/resultsh.xml"))
+    trainer.resultsh = resultsh
+
+    resultss = json.load(open("../results/resultss.xml"))
+    trainer.resultss = resultss
+
+    resultsa = json.load(open("../results/resultsa.xml"))
+    trainer.resultsa = resultsa
+
+    resultssp = json.load(open("../results/resultssp.xml"))
+    trainer.resultssp = resultssp
+
+    resultsn = json.load(open("../results/resultsn.xml"))
+    trainer.resultsn = resultsn
 
 
 def displayFace(face):
+    printAndSaveResult()
+
     ax[0].imshow(face, cmap='gray')
     isBarGraph = 'on' if trainer.index+1 == len(faces.images) else 'off'      # Switching Bar Graph ON
     if isBarGraph is 'on':
         displayBarGraph(isBarGraph)
-        printAndSaveResult()
-    # f.tight_layout()
+            # f.tight_layout()
     canvas.draw()
 
 def _begin():
+    displayFace(trainer.imgs[trainer.index])
     trainer.reset()
-    global HCount, SCount, ACount
+    global HCount, SCount, ACount, SPCount, NCount
     HCount = 0
     SCount = 0
     ACount = 0
-    updateImageCount(happyCount=False, sadCount=False, angryCount=False)
-    displayFace(trainer.imgs[trainer.index])
+    SPCount = 0
+    NCount = 0
+    updateImageCount(happyCount=False, sadCount=False, angryCount=False, suprisedCount = False, normalCount = False)
+    
 
 
 def _quit():
@@ -203,12 +310,18 @@ if __name__ == "__main__":
     # Declaring Button & Label Instances
     # =======================================
     smileButton = Tk.Button(master=root, text='Happy', command=smileCallback)
-    smileButton.pack(side=Tk.LEFT)
+    smileButton.pack(side=Tk.RIGHT)
 
     noSmileButton = Tk.Button(master=root, text='Sad', command=noSmileCallback)
     noSmileButton.pack(side=Tk.RIGHT)
 
     angryButton = Tk.Button(master=root, text='Angry', command=angryCallback)
+    angryButton.pack(side=Tk.RIGHT)
+
+    angryButton = Tk.Button(master=root, text='Suprised', command=suprisedCallback)
+    angryButton.pack(side=Tk.RIGHT)
+
+    angryButton = Tk.Button(master=root, text='Normal', command=normalCallback)
     angryButton.pack(side=Tk.RIGHT)
 
     labelVar = Tk.StringVar()
@@ -221,8 +334,10 @@ if __name__ == "__main__":
     HCount = 0
     SCount = 0
     ACount = 0
+    SPCount = 0
+    NCount = 0
     countLabel = Tk.Label(master=root, textvariable=countVar)
-    countString = "(Happy: 0   Sad: 0   Angry:0)\n"     # Initial print
+    countString = "(Happy: 0   Sad: 0   Angry:0   Suprised:0   Normal:0)\n"     # Initial print
     countVar.set(countString)
     countLabel.pack(side=Tk.TOP)
 
