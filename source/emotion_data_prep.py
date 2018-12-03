@@ -4,6 +4,7 @@ import os
 
 from face_detection import find_faces
 
+#clearing the previous data
 def remove_face_data(emotions):
     print("Removing previous processed faces...")
     for emotion in emotions:
@@ -13,6 +14,7 @@ def remove_face_data(emotions):
             
     print("Done!")
 
+    #image extraction
 def extract_faces(emotions):
     print("Extracting faces...")
     add = 80
