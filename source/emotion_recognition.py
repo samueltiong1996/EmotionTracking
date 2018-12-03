@@ -670,7 +670,7 @@ def refreshcombo(nb, canvas,canvas2,cb1, cb2, cbs):
         productv2.append(row[0])
     cbs.config(values = productv2)
 
-
+#detect cameras
 def findcamera():
     validate = 0
     cameracount = []
